@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Categoria, Registro, Estado
+from .models import (Categoria, Registro, 
+                     Estado, Acreedor, Prestamo)  # Importa los modelos necesarios
 
 
 
@@ -39,6 +40,15 @@ class CategoriaAdmin(admin.ModelAdmin):
     list_filter=('tipo',)
     search_fields=('nombre','tipo',)
     actions = None
+
+@admin.register(Prestamo)
+class PrestamoAdmin(admin.ModelAdmin):
+    list_display=('fecha', 'acreedor', 'tipo','monto')
+    list_display_links=('acreedor',)
+    list_per_page=25
+    list_filter=('acreedor', 'tipo',)
+    search_fields=('acreedor','tipo',)
+    actions = None
     
 #QUITAMOS EL REGISTRO HASTA QUE VUELA A SER NECESARIO###
 
@@ -48,4 +58,5 @@ class CategoriaAdmin(admin.ModelAdmin):
 #     list_per_page=25
 #     search_fields=('tipo',)
 #     actions = None
+
 
