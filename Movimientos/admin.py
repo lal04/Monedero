@@ -43,8 +43,8 @@ class CategoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Prestamo)
 class PrestamoAdmin(admin.ModelAdmin):
-    list_display=('fecha', 'acreedor', 'tipo','monto')
-    list_display_links=('acreedor',)
+    list_display=('fecha', 'detalle','acreedor', 'tipo','monto', 'saldo')
+    list_display_links=('detalle',)
     list_per_page=25
     list_filter=('acreedor', 'tipo',)
     search_fields=('acreedor','tipo',)
