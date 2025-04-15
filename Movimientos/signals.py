@@ -1,6 +1,14 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
+from django.contrib.auth.models import User
 from .models import Registro,Prestamo
+
+@receiver(post_save, sender=User)
+def autostaff(sender, instance, created, **kwargs):
+    if created:
+        instance.is_staff = True
+        instance.save()
+
 @receiver(pre_save, sender=Registro)
 def guardar_datos_anteriores(sender, instance, **kwargs):
     if instance.pk:
