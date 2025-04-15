@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Estado(models.Model):
     
@@ -19,6 +20,7 @@ class Categoria(models.Model):
         ('Ingreso', 'Ingreso'),
         ('Gasto', 'Gasto'),
     )
+    usuario=models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     nombre=models.CharField(max_length=100, unique=True)
     tipo=models.CharField(max_length=10, choices=TIPO_CHOICES, default='Gasto')
 
@@ -27,7 +29,7 @@ class Categoria(models.Model):
 
 
 class Registro(models.Model):
-    
+    usuario=models.ForeignKey( User, on_delete=models.CASCADE)    
     fecha=models.DateField(auto_now=True)    
     descripcion=models.CharField(max_length=200)
     categoria=models.ForeignKey('Categoria', on_delete=models.CASCADE)
@@ -40,6 +42,7 @@ class Registro(models.Model):
         return f"{self.descripcion} - {self.monto}"
     
 class Acreedor(models.Model):
+    usuario=models.ForeignKey( User, on_delete=models.CASCADE)
     nombre=models.CharField(max_length=100, unique=True)
     
     class Meta:
@@ -56,6 +59,7 @@ class Prestamo(models.Model):
         ('Persona natural', 'Persona natural'),
         ('Entidad financiera', 'Entidad financiera'),
     )
+    usuario=models.ForeignKey( User, on_delete=models.CASCADE)
     fecha=models.DateField()
     detalle=models.CharField(max_length=200)
     acreedor=models.ForeignKey('Acreedor', on_delete=models.SET_NULL, null=True)

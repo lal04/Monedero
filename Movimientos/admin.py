@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Q
 from .models import (Categoria, Registro, 
                      Estado, Acreedor, Prestamo)  # Importa los modelos necesarios
 
@@ -7,6 +8,7 @@ from .models import (Categoria, Registro,
 @admin.register(Registro)  # Registra el modelo 'Registro' en el panel de admin con una clase personalizada
 class RegistroAdmin(admin.ModelAdmin):
     
+    exclude=['usuario']
     
     #
     list_display = [field.name for field in Registro._meta.fields] 
@@ -32,23 +34,58 @@ class RegistroAdmin(admin.ModelAdmin):
 
     actions = None  
     # Elimina la acción por defecto "Eliminar seleccionados" del panel
+    
+    def get_queryset(self, request):
+        qs= super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.filter(usuario=request.user)
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.usuario= request.user
+        return super().save_model(request, obj, form, change)
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
+    exclude=['usuario']
     list_display=('nombre', 'tipo',)
     list_per_page=25
     list_filter=('tipo',)
     search_fields=('nombre','tipo',)
     actions = None
+    
+    def get_queryset(self, request):
+        qs= super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(Q(usuario=request.user) | Q(usuario__isnull=True))
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.usuario= request.user
+        return super().save_model(request, obj, form, change)
+        
 
 @admin.register(Prestamo)
 class PrestamoAdmin(admin.ModelAdmin):
+    exclude=['usuario']
     list_display=('fecha', 'detalle','acreedor', 'tipo','monto', 'saldo')
     list_display_links=('detalle',)
     list_per_page=25
     list_filter=('acreedor', 'tipo',)
     search_fields=('acreedor','tipo',)
     actions = None
+    
+    def get_queryset(self, request):
+        qs= super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.filter(usuario=request.user)
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.usuario= request.user
+        return super().save_model(request, obj, form, change)
     
 #QUITAMOS EL REGISTRO HASTA QUE VUELA A SER NECESARIO###
 
