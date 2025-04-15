@@ -47,7 +47,13 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Bienvenido a tu Monedero",
     "site_brand": "Monedero",
     "navigation_expanded": False,
-    "related_modal_active": True
+    "related_modal_active": True,
+    "order_with_respect_to": [
+        "Movimientos.Registro",
+        "Movimientos.Categoria",
+        "Movimientos.Prestamo",
+
+    ],
 }
 
 
