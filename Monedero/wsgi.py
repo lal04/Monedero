@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Monedero.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Monedero.settings.prod')  # O usa 'dev' en desarrollo
 
 application = get_wsgi_application()
