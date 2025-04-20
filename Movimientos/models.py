@@ -26,28 +26,17 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
-
-
-class Registro(models.Model):
-    usuario=models.ForeignKey( User, on_delete=models.CASCADE)    
-    fecha=models.DateField(auto_now=True)    
-    descripcion=models.CharField(max_length=200)
-    categoria=models.ForeignKey('Categoria', on_delete=models.CASCADE)
-    prestamo=models.ForeignKey('Prestamo', on_delete=models.SET_NULL, null=True, blank=True)
-    monto=models.DecimalField(max_digits=10, decimal_places=2)
-    # Relación con el modelo Estado, por defecto 'Pendiente'
-    estado=models.ForeignKey('Estado', on_delete=models.CASCADE, null=True, default=2)
-
-    def __str__(self):
-        return f"{self.descripcion} - {self.monto}"
     
-class Acreedor(models.Model):
+class Tipo(models.Model):
+    nombre=models.CharField(max_length=10, help_text='Tipo de movimiento')
+    def __str__(self):
+        return self.nombre
+
+
+    
+class Persona(models.Model):
     usuario=models.ForeignKey( User, on_delete=models.CASCADE)
     nombre=models.CharField(max_length=100, unique=True)
-    
-    class Meta:
-        verbose_name = "Acreedor"
-        verbose_name_plural = 'Acreedores'
     
 
     def __str__(self):
@@ -62,7 +51,7 @@ class Prestamo(models.Model):
     usuario=models.ForeignKey( User, on_delete=models.CASCADE)
     fecha=models.DateField()
     detalle=models.CharField(max_length=200)
-    acreedor=models.ForeignKey('Acreedor', on_delete=models.SET_NULL, null=True)
+    persona=models.ForeignKey(Persona, on_delete=models.SET_NULL, null=True)
     tipo=models.CharField(max_length=20, choices=TIPO_CHOICES, default='Persona natural')
     monto=models.DecimalField(max_digits=10, decimal_places=2)
     saldo=models.DecimalField(max_digits=10, decimal_places=2, blank=True)
@@ -76,4 +65,21 @@ class Prestamo(models.Model):
     def __str__(self):
         return f'{self.acreedor} - {self.monto}'
 
-    
+
+class Registro(models.Model):
+    PRESTAMO_CHOICES = (
+        (True, 'Si'),
+        (False, 'No'),
+    )
+    usuario=models.ForeignKey( User, on_delete=models.CASCADE)    
+    fecha=models.DateField(help_text='Fecha del movimiento')
+    tipo=models.ForeignKey(Tipo, on_delete=models.CASCADE, null=True, blank=True) 
+    detalle=models.CharField(max_length=200, help_text='Descripción del movimiento', db_column='descripcion')
+    categoria=models.ForeignKey(Categoria, on_delete=models.CASCADE, null=True, blank=True)
+    monto=models.DecimalField(max_digits=10, decimal_places=2)
+    estado=models.ForeignKey(Estado, on_delete=models.CASCADE, default=2)
+    prestamo=models.BooleanField(default=False,help_text='¿Es un prestamo?', choices=PRESTAMO_CHOICES)
+    persona=models.ForeignKey(Persona, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.detalle} - {self.monto}"

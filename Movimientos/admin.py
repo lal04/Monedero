@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.db.models import Q
-from .models import (Categoria, Registro, 
-                     Estado, Acreedor, Prestamo)  # Importa los modelos necesarios
+from .models import (Categoria, Registro,Tipo, 
+                     Estado, Persona, Prestamo)  # Importa los modelos necesarios
+
+admin.site.register(Tipo)  # Registra el modelo 'Tipo' en el panel de admin
+admin.site.register(Persona)  # Registra el modelo 'Persona' en el panel de admin
+admin.site.register(Estado)  # Registra el modelo 'Estado' en el panel de admin
 
 
 
@@ -10,17 +14,17 @@ class RegistroAdmin(admin.ModelAdmin):
     
     exclude=['usuario']
     
-    #
-    list_display = [field.name for field in Registro._meta.fields] 
+
+    list_display = ['fecha','tipo','detalle','categoria','monto','estado',] 
     # Muestra estas columnas en la lista del admin de forma automatica, por defecto todas las columnas
 
     list_filter = ('categoria', 'fecha', 'estado')  
     # Agrega filtros laterales por categoría y por fecha
 
-    search_fields = ('descripcion',)  
+    search_fields = ('detalle',)  
     # Permite buscar por el campo 'descripcion' en el buscador superior
 
-    list_display_links = ('descripcion',)  
+    list_display_links = ('detalle',)  
     # Convierte la columna 'descripcion' en enlace para acceder al detalle del registro
 
     list_per_page = 25  
@@ -69,11 +73,11 @@ class CategoriaAdmin(admin.ModelAdmin):
 @admin.register(Prestamo)
 class PrestamoAdmin(admin.ModelAdmin):
     exclude=['usuario']
-    list_display=('fecha', 'detalle','acreedor', 'tipo','monto', 'saldo')
+    list_display=('fecha', 'detalle', 'tipo','monto', 'saldo')
     list_display_links=('detalle',)
     list_per_page=25
-    list_filter=('acreedor', 'tipo',)
-    search_fields=('acreedor','tipo',)
+    list_filter=('persona', 'tipo',)
+    search_fields=('persona','tipo',)
     actions = None
     
     def get_queryset(self, request):
