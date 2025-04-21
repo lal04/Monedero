@@ -3,9 +3,28 @@ from django.db.models import Q
 from .models import (Categoria, Registro,Tipo, 
                      Estado, Persona, Prestamo)  # Importa los modelos necesarios
 
-admin.site.register(Tipo)  # Registra el modelo 'Tipo' en el panel de admin
-admin.site.register(Persona)  # Registra el modelo 'Persona' en el panel de admin
+#admin.site.register(Tipo)  # Registra el modelo 'Tipo' en el panel de admin
+#admin.site.register(Persona)  # Registra el modelo 'Persona' en el panel de admin
 admin.site.register(Estado)  # Registra el modelo 'Estado' en el panel de admin
+
+@admin.register(Persona)
+class PersonaAdmin(admin.ModelAdmin):
+    exclude=['usuario']
+    list_display=('nombre','saldo',)
+    list_per_page=25
+    search_fields=('nombre',)
+    actions = None
+    
+    def get_queryset(self, request):
+        qs= super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        else:
+            return qs.filter(usuario=request.user)
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.usuario= request.user
+        return super().save_model(request, obj, form, change)
 
 
 
@@ -73,11 +92,11 @@ class CategoriaAdmin(admin.ModelAdmin):
 @admin.register(Prestamo)
 class PrestamoAdmin(admin.ModelAdmin):
     exclude=['usuario']
-    list_display=('fecha', 'detalle', 'tipo','monto', 'saldo')
+    list_display=('fecha', 'fecha_pago','detalle','persona','monto', 'saldo')
     list_display_links=('detalle',)
     list_per_page=25
-    list_filter=('persona', 'tipo',)
-    search_fields=('persona','tipo',)
+    list_filter=('persona',)
+    search_fields=('persona',)
     actions = None
     
     def get_queryset(self, request):

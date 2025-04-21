@@ -2,6 +2,7 @@ from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import Registro,Prestamo
+from datetime import timedelta
 
 @receiver(post_save, sender=User)
 def autostaff(sender, instance, created, **kwargs):
@@ -20,10 +21,20 @@ def guardar_datos_anteriores(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Registro)
 def acualizar_saldo_prestamo(sender, instance, created , **kwargs):
-    if created and instance.prestamo:
-        if instance.categoria.nombre == 'Amortizacion':
-            instance.prestamo.saldo-=instance.monto
-            instance.prestamo.save()
+    if created and instance.prestamo and instance.tipo.nombre== 'Ingreso':
+        
+        Prestamo.objects.create(
+            usuario=instance.usuario,
+            fecha=instance.fecha,
+            fecha_pago=instance.fecha+timedelta(days=30),
+            detalle=instance.detalle,
+            persona=instance.persona,
+            monto=instance.monto,
+            
+        )
+        
+            
+    ##ACTUALIZACION DE UN REGISTRO
     elif not created:
         # Recuperar datos anteriores (definidos en pre_save)
         old_prestamo = getattr(instance, '_old_prestamo', None)
@@ -46,8 +57,8 @@ def acualizar_saldo_prestamo(sender, instance, created , **kwargs):
             nuevo_prestamo.saldo -= nuevo_monto
             nuevo_prestamo.save()
             
-@receiver(post_delete, sender=Registro)
-def revertir_saldo_prestamo(sender, instance, **kwargs):
-    if instance.prestamo and instance.categoria.nombre == 'Amortizacion':
-        instance.prestamo.saldo+=instance.monto
-        instance.prestamo.save()
+# @receiver(post_delete, sender=Registro)
+# def revertir_saldo_prestamo(sender, instance, **kwargs):
+#     if instance.prestamo:
+#         instance.prestamo.saldo+=instance.monto
+#         instance.prestamo.save()

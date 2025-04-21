@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.forms import ValidationError
 
 class Estado(models.Model):
     
@@ -37,6 +38,7 @@ class Tipo(models.Model):
 class Persona(models.Model):
     usuario=models.ForeignKey( User, on_delete=models.CASCADE)
     nombre=models.CharField(max_length=100, unique=True)
+    saldo=models.DecimalField(max_digits=10, decimal_places=2,default=0, blank=True)
     
 
     def __str__(self):
@@ -44,17 +46,19 @@ class Persona(models.Model):
     
     
 class Prestamo(models.Model):
-    TIPO_CHOICES=(
-        ('Persona natural', 'Persona natural'),
-        ('Entidad financiera', 'Entidad financiera'),
-    )
+    
     usuario=models.ForeignKey( User, on_delete=models.CASCADE)
     fecha=models.DateField()
+    fecha_pago=models.DateField(null=True, blank=True)
     detalle=models.CharField(max_length=200)
     persona=models.ForeignKey(Persona, on_delete=models.SET_NULL, null=True)
-    tipo=models.CharField(max_length=20, choices=TIPO_CHOICES, default='Persona natural')
     monto=models.DecimalField(max_digits=10, decimal_places=2)
     saldo=models.DecimalField(max_digits=10, decimal_places=2, blank=True)
+    
+    
+    def clean(self):
+        if self.fecha >= self.fecha_pago:
+            raise ValidationError('La fecha de pago debe ser posterior a la fecha del prestamo')
     
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -63,7 +67,7 @@ class Prestamo(models.Model):
     
 
     def __str__(self):
-        return f'{self.acreedor} - {self.monto}'
+        return f'{self.persona} - {self.monto}'
 
 
 class Registro(models.Model):
