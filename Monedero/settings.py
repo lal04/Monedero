@@ -52,6 +52,7 @@ JAZZMIN_SETTINGS = {
         "Movimientos.Registro",
         "Movimientos.Categoria",
         "Movimientos.Prestamo",
+        "Movimientos.PagoPrestamo",
 
     ],
 }

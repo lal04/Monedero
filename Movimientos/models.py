@@ -44,7 +44,6 @@ class Persona(models.Model):
     def __str__(self):
         return self.nombre
     
-    
 class Prestamo(models.Model):
     
     usuario=models.ForeignKey( User, on_delete=models.CASCADE)
@@ -53,22 +52,27 @@ class Prestamo(models.Model):
     detalle=models.CharField(max_length=200)
     persona=models.ForeignKey(Persona, on_delete=models.SET_NULL, null=True)
     monto=models.DecimalField(max_digits=10, decimal_places=2)
-    saldo=models.DecimalField(max_digits=10, decimal_places=2, blank=True)
     
     
     def clean(self):
         if self.fecha >= self.fecha_pago:
             raise ValidationError('La fecha de pago debe ser posterior a la fecha del prestamo')
     
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.saldo=self.monto
-        super().save(*args, **kwargs)
-    
 
     def __str__(self):
         return f'{self.persona} - {self.monto}'
 
+class PagoPrestamo(models.Model):
+    
+    usuario=models.ForeignKey( User, on_delete=models.CASCADE)
+    fecha=models.DateField()
+    detalle=models.CharField(max_length=200)
+    monto=models.DecimalField(max_digits=10, decimal_places=2)
+    persona=models.ForeignKey(Persona, on_delete=models.CASCADE, null=True, blank=True)
+    
+
+    def __str__(self):
+        return f'{self.detalle} - {self.monto}'
 
 class Registro(models.Model):
     PRESTAMO_CHOICES = (

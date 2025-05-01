@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models import Sum
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import Registro,Prestamo
+from .models import PagoPrestamo, Persona, Registro,Prestamo
 from datetime import timedelta
 
 @receiver(post_save, sender=User)
@@ -21,41 +22,46 @@ def guardar_datos_anteriores(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Registro)
 def acualizar_saldo_prestamo(sender, instance, created , **kwargs):
-    if created and instance.prestamo and instance.tipo.nombre== 'Ingreso':
+    if created and instance.prestamo:
+        if instance.tipo.nombre== 'Ingreso':
         
-        Prestamo.objects.create(
-            usuario=instance.usuario,
-            fecha=instance.fecha,
-            fecha_pago=instance.fecha+timedelta(days=30),
-            detalle=instance.detalle,
-            persona=instance.persona,
-            monto=instance.monto,
+            Prestamo.objects.create(
+                usuario=instance.usuario,
+                fecha=instance.fecha,
+                fecha_pago=instance.fecha+timedelta(days=30),
+                detalle=instance.detalle,
+                persona=instance.persona,
+                monto=instance.monto,
+                
+            )
+        elif instance.tipo.nombre== 'Gasto':
+            PagoPrestamo.objects.create(
+                usuario=instance.usuario,
+                fecha=instance.fecha,
+                detalle=instance.detalle,
+                monto=instance.monto,
+                persona=instance.persona,
+                
+            )
+@receiver(post_save, sender=Prestamo)
+def aumentar_saldo_persona(sender, instance, created, **kwargs):
+    
+    persona= instance.persona
+    
+    total_prestamos=Prestamo.objects.filter(persona=instance.persona).aggregate(total=Sum('monto'))['total'] or 0
+    
+    persona.saldo=total_prestamos
+    persona.save()
+    
+@receiver(post_save, sender=PagoPrestamo)
+def disminuir_saldo_persona(sender, instance, created, **kwargs):
+    persona= instance.persona         
             
-        )
-        
-            
-    ##ACTUALIZACION DE UN REGISTRO
-    elif not created:
-        # Recuperar datos anteriores (definidos en pre_save)
-        old_prestamo = getattr(instance, '_old_prestamo', None)
-        old_monto = getattr(instance, '_old_monto', None)
-        old_categoria = getattr(instance, '_old_categoria', None)
-        nueva_categoria = instance.categoria.nombre
-        nuevo_prestamo = instance.prestamo
-        nuevo_monto = instance.monto
-        
-
-        # Si antes era amortización y tenía préstamo → revertimos ese cambio
-        if old_categoria and old_categoria.nombre == 'Amortizacion' and old_prestamo:
-            
-            old_prestamo.saldo += old_monto
-            print(old_prestamo.saldo)
-            old_prestamo.save()
-
-        # Si ahora es amortización y tiene préstamo → aplicamos nuevo descuento
-        if nueva_categoria == 'Amortizacion' and nuevo_prestamo:
-            nuevo_prestamo.saldo -= nuevo_monto
-            nuevo_prestamo.save()
+    total_pagos=PagoPrestamo.objects.filter(persona=instance.persona).aggregate(total=Sum('monto'))['total'] or 0
+    
+    persona.saldo-=total_pagos
+    persona.save()
+   
             
 # @receiver(post_delete, sender=Registro)
 # def revertir_saldo_prestamo(sender, instance, **kwargs):
